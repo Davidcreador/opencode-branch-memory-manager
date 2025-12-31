@@ -82,12 +82,25 @@ EOF
 # Check if opencode.json exists and update it
 if [ -f "opencode.json" ]; then
     echo "🔧 Updating opencode.json..."
-    
+
     if command -v jq &> /dev/null; then
-        # Add tools to existing config
-        jq '.tools += ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"] | .tools |= unique' opencode.json > opencode.json.tmp
-        mv opencode.json.tmp opencode.json
-        echo -e "${GREEN}✅ Tools added to opencode.json${NC}"
+        # Check if tools array exists, if not create it
+        if jq -e '.tools' opencode.json > /dev/null 2>&1; then
+            # Check if tools is an array
+            if jq -e '.tools | type == "array"' opencode.json > /dev/null 2>&1; then
+                # Add tools to existing array
+                jq '.tools += ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"] | .tools |= unique' opencode.json > opencode.json.tmp
+                mv opencode.json.tmp opencode.json
+                echo -e "${GREEN}✅ Tools added to opencode.json${NC}"
+            else
+                echo -e "${YELLOW}⚠️  Existing 'tools' property is not an array. Please manually update opencode.json${NC}"
+            fi
+        else
+            # Add tools array to config
+            jq '.tools = ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"]' opencode.json > opencode.json.tmp
+            mv opencode.json.tmp opencode.json
+            echo -e "${GREEN}✅ Tools array created in opencode.json${NC}"
+        fi
     else
         echo -e "${YELLOW}⚠️  jq not found. Please manually add these tools to opencode.json:${NC}"
         echo -e "  \"tools\": [\"@branch-memory_save\", \"@branch-memory_load\", \"@branch-memory_status\", \"@branch-memory_list\", \"@branch-memory_deleteContext\"]"
