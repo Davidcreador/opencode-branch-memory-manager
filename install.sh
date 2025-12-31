@@ -83,13 +83,50 @@ EOF
 if [ -f "opencode.json" ]; then
     echo "🔧 Updating opencode.json..."
 
-    if command -v jq &> /dev/null; then
-        # Just replace the tools array completely
+    # Use sed to replace tools array
+    # First, remove the existing tools array/object
+    # This approach works regardless of whether tools is an object or array
+
+    # Backup original
+    cp opencode.json opencode.json.backup
+
+    if command -v python3 &> /dev/null; then
+        # Use Python to update the JSON file
+        python3 - << 'PYTHON_SCRIPT'
+import json
+import sys
+
+try:
+    with open('opencode.json', 'r') as f:
+        config = json.load(f)
+
+    # Replace tools array completely
+    config['tools'] = [
+        "@branch-memory_save",
+        "@branch-memory_load",
+        "@branch-memory_status",
+        "@branch-memory_list",
+        "@branch-memory_deleteContext"
+    ]
+
+    with open('opencode.json', 'w') as f:
+        json.dump(config, f, indent=2)
+
+    print("✅ Tools updated in opencode.json")
+except Exception as e:
+    print(f"❌ Error: {e}", file=sys.stderr)
+    sys.exit(1)
+PYTHON_SCRIPT
+
+    elif command -v jq &> /dev/null; then
+        # Fallback to jq
         jq '.tools = ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"]' opencode.json > opencode.json.tmp
         mv opencode.json.tmp opencode.json
         echo -e "${GREEN}✅ Tools updated in opencode.json${NC}"
     else
-        echo -e "${YELLOW}⚠️  jq not found. Please manually add these tools to opencode.json:${NC}"
+        # Fallback to manual instructions
+        echo -e "${YELLOW}⚠️  Could not automatically update opencode.json${NC}"
+        echo -e "${YELLOW}  Please manually add these tools:${NC}"
         echo -e "  \"tools\": [\"@branch-memory_save\", \"@branch-memory_load\", \"@branch-memory_status\", \"@branch-memory_list\", \"@branch-memory_deleteContext\"]"
     fi
 else
