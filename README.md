@@ -4,13 +4,13 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 ## ✨ Features
 
-- 🔄 **Automatic Context Switching**: Context automatically loads when you change branches
-- 💾 **Intelligent Preservation**: Auto-saves context on every message change
-- 🎛️ **User Control**: Manual save/load commands with fine-grained filters
+- 🎛️ **Manual Control**: Save/load context with fine-grained filters
+- 💾 **Branch-Specific Storage**: Context saved per git branch
+- 📊 **Status Dashboard**: See all your saved contexts at a glance
 - 🛡️ **Error Resilient**: Automatic backups and recovery from corrupted data
 - 🌐 **Cross-Platform**: Works seamlessly on macOS, Linux, and Windows
-- 📊 **Status Dashboard**: See all your saved contexts at a glance
-- 🎯 **Configurable**: Choose auto-save timing, context loading mode, and more
+- 📋 **List & Delete**: Manage saved contexts easily
+- 🎯 **Configurable**: Customize what to save and storage options
 
 ## 🚀 Quick Start
 
@@ -18,12 +18,12 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 **macOS/Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/user/repo/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/user/repo/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.ps1 | iex
 ```
 
 ### Getting Started
@@ -232,27 +232,29 @@ Configuration is stored in `.opencode/config/branch-memory.json`
 
 ## 🔧 How It Works
 
-1. **Initialization**: Plugin loads configuration and checks git repository
-2. **Branch Monitoring**: Monitors `.git/HEAD` file for changes
-3. **Automatic Saving**: Saves context based on configuration:
-   - Message changes (throttled to 5 seconds)
-   - Before tool execution
-   - On branch changes
-   - Periodically (every 60 seconds)
-4. **Context Switching**: When branch changes:
-   - Auto-saves old branch context
-   - Loads new branch context (or prompts user based on config)
+1. **Initialization**: Tools load configuration from `.opencode/config/branch-memory.json`
+2. **Manual Saving**: Use `@branch-memory_save` to save context:
+    - Saves conversation messages
+    - Saves todo items
+    - Saves modified file references
+3. **Manual Loading**: Use `@branch-memory_load` to restore context:
+    - Loads messages and todos
+    - Shows what was saved
+4. **Status Checking**: Use `@branch-memory_status` to see:
+    - Current branch and context
+    - All saved contexts
+    - Metadata (size, dates, counts)
 5. **Error Recovery**: Automatic backups prevent data loss
-6. **Clean Shutdown**: Final save before plugin unload
+6. **Management**: Use `@branch-memory_list` and `@branch-memory_deleteContext` to manage saved contexts
 
 ## 🐛 Troubleshooting
 
-### Plugin not loading
+### Tools not available
 
-1. Check if plugin is in `opencode.json`:
+1. Check if tools are in `opencode.json`:
 ```json
 {
-  "plugin": [".opencode/plugin/branch-memory-plugin.ts"]
+  "tools": ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"]
 }
 ```
 
@@ -302,7 +304,7 @@ git rev-parse --git-dir
 
 ### Corrupted context files
 
-The plugin automatically restores from backups. If issues persist:
+The system automatically restores from backups. If issues persist:
 
 1. Check backup files:
 ```bash
@@ -332,8 +334,6 @@ chmod -R u+w .opencode/branch-memory/
 .opencode/
 ├── tool/
 │   └── branch-memory.ts          # User-facing tools
-├── plugin/
-│   └── branch-memory-plugin.ts   # Main plugin
 ├── branch-memory/
 │   ├── index.ts                  # Exports
 │   ├── storage.ts                # Context persistence
@@ -343,6 +343,8 @@ chmod -R u+w .opencode/branch-memory/
 │   ├── injector.ts              # Context injection
 │   ├── types.ts                 # TypeScript types
 │   └── config.ts                # Configuration
+├── config/
+│   └── branch-memory.json        # Configuration file
 └── package.json                  # Dependencies
 ```
 
@@ -378,25 +380,24 @@ opencode
 @branch-memory_status
 ```
 
-2. **Context loads automatically:**
-```
-🔄 Branch changed: main → feature/user-profile
-✅ Loaded context for branch 'feature/user-profile'
+2. **Work on feature and save context:**
+```bash
+# Do some work...
+@branch-memory_save "Adding user profile feature"
 ```
 
-3. **Work on feature with context preserved**
-```
-# Messages and todos are preserved
-# Switch to main to work on bug fix
+3. **Switch to main to work on bug fix:**
+```bash
 git checkout main
+@branch-memory_status
 ```
 
-4. **Switch back to feature:**
+4. **Switch back to feature and load context:**
 ```bash
 git checkout feature/user-profile
-@branch-memory_status
+@branch-memory_load
 
-# Context is exactly where you left it
+# Context is restored - messages and todos are back
 ```
 
 ## 📝 License
