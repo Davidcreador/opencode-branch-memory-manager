@@ -98,27 +98,22 @@ if (Test-Path "opencode.json") {
 
     try {
         $config = Get-Content "opencode.json" -Raw | ConvertFrom-Json
-        $tools = @("@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext")
 
-        # Remove existing tools property
+        # Remove tools property (tools are auto-discovered)
         if ($config.PSObject.Properties.Name -contains "tools") {
             $config.PSObject.Properties.Remove("tools")
         }
 
-        # Add new tools array
-        $config | Add-Member -NotePropertyName "tools" -Value $tools -Force
-
         $config | ConvertTo-Json -Depth 10 | Set-Content "opencode.json"
-        Write-Host "✅ Tools updated in opencode.json" -ForegroundColor Green
+        Write-Host "✅ Tools property removed (tools are auto-discovered)" -ForegroundColor Green
     } catch {
         Write-Host "⚠️  Could not modify opencode.json: $_" -ForegroundColor Yellow
-        Write-Host "   Please manually add these tools:" -ForegroundColor Yellow
-        Write-Host '   "tools": ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"]' -ForegroundColor Yellow
+        Write-Host "   Please remove the 'tools' property from opencode.json" -ForegroundColor Yellow
+        Write-Host "   Tools are auto-discovered from .opencode/tool/ directory" -ForegroundColor Yellow
     }
 } else {
     Write-Host "⚠️  opencode.json not found" -ForegroundColor Yellow
-    Write-Host "   Please create opencode.json and add these tools:" -ForegroundColor Yellow
-    Write-Host '   "tools": ["@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext"]' -ForegroundColor Yellow
+    Write-Host "   Tools will be auto-discovered from .opencode/tool/ directory" -ForegroundColor Yellow
 }
 
 Write-Host ""
