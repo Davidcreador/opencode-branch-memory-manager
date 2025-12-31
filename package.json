@@ -1,0 +1,36 @@
+{
+  "name": "opencode-branch-memory-manager",
+  "version": "0.1.0",
+  "description": "Automatically manages branch-specific context for OpenCode",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "eslint .opencode tests --ext .ts",
+    "lint:fix": "eslint .opencode tests --ext .ts --fix",
+    "clean": "rm -rf dist node_modules .opencode/node_modules"
+  },
+  "keywords": [
+    "opencode",
+    "branch-memory",
+    "context",
+    "git",
+    "plugin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@opencode-ai/plugin": "latest",
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0",
+    "bun-types": "latest",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
+}

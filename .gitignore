@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.opencode/node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Testing
+coverage/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Storage (optional - comment out if you want to track contexts)
+.opencode/branch-memory/*.json
+!.opencode/branch-memory/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+.opencode.backup.*
+
+# Config backups
+.opencode/config/branch-memory.backup.*
+
+# Environment
+.env
+.env.local
+.env.*.local
