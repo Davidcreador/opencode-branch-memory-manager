@@ -49,7 +49,7 @@ const runner = new TestRunner()
 const testDir = '/tmp/test-config'
 const configPath = path.join(testDir, '.opencode', 'config', 'branch-memory.json')
 
-runner.beforeEach(async () => {
+runner.beforeEach(async () => { // eslint-disable-line
   // Clean up test directory
   await fs.rm(testDir, { recursive: true, force: true }).catch(() => {})
   await fs.mkdir(testDir, { recursive: true })
@@ -64,7 +64,7 @@ runner.afterEach(async () => {
 
 runner.describe('ConfigManager', () => {
   runner.describe('getDefault()', () => {
-    runner.it('should return default configuration', () => {
+    runner.it('should return default configuration', async () => {
       const config = ConfigManager.getDefault()
       
       assert.ok(config)
@@ -82,7 +82,7 @@ runner.describe('ConfigManager', () => {
       assert.strictEqual(config.monitoring.pollingInterval, 1000)
     })
     
-    runner.it('should return a copy of defaults (not reference)', () => {
+    runner.it('should return a copy of defaults (not reference)', async () => {
       const config1 = ConfigManager.getDefault()
       const config2 = ConfigManager.getDefault()
       
@@ -218,7 +218,7 @@ runner.describe('ConfigManager', () => {
   })
   
   runner.describe('getStorageDir()', () => {
-    runner.it('should return correct storage directory path', () => {
+    runner.it('should return correct storage directory path', async () => {
       const storageDir = ConfigManager.getStorageDir(testDir)
       
       assert.strictEqual(storageDir, path.join(testDir, '.opencode', 'branch-memory'))

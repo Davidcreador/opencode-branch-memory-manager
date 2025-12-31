@@ -18,6 +18,7 @@ export interface BranchContext {
     files?: string[]
     summary?: string
     description?: string
+    [key: string]: unknown  // Allow additional dynamic properties
   }
 }
 
