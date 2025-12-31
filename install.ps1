@@ -100,23 +100,15 @@ if (Test-Path "opencode.json") {
         $config = Get-Content "opencode.json" -Raw | ConvertFrom-Json
         $tools = @("@branch-memory_save", "@branch-memory_load", "@branch-memory_status", "@branch-memory_list", "@branch-memory_deleteContext")
 
+        # Just replace the tools array completely
         if ($config.PSObject.Properties.Name -contains "tools") {
-            if ($config.tools -is [array]) {
-                foreach ($tool in $tools) {
-                    if ($config.tools -notcontains $tool) {
-                        $config.tools += $tool
-                    }
-                }
-                $config.tools = $config.tools | Select-Object -Unique
-            } else {
-                Write-Host "⚠️  Existing 'tools' property is not an array. Please manually update opencode.json" -ForegroundColor Yellow
-            }
+            $config.tools = $tools
         } else {
             $config | Add-Member -NotePropertyName "tools" -Value $tools -Force
         }
 
         $config | ConvertTo-Json -Depth 10 | Set-Content "opencode.json"
-        Write-Host "✅ Tools added to opencode.json" -ForegroundColor Green
+        Write-Host "✅ Tools updated in opencode.json" -ForegroundColor Green
     } catch {
         Write-Host "⚠️  Could not modify opencode.json: $_" -ForegroundColor Yellow
         Write-Host "   Please manually add these tools:" -ForegroundColor Yellow
