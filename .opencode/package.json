@@ -8,6 +8,6 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "latest"
+    "@opencode-ai/plugin": "1.0.221"
   }
 }

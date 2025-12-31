@@ -1,17 +1,16 @@
-import type { PluginContext } from '@opencode-ai/plugin'
-import type { BranchContext, PluginConfig } from './types.js'
-import { GitOperations } from './git.js'
+import type { BranchContext, PluginConfig } from "./types.js";
+import { GitOperations } from "./git.js";
 
 /**
  * Collects context data from various sources
  */
 export class ContextCollector {
-  private config: PluginConfig
-  
+  private config: PluginConfig;
+
   constructor(config: PluginConfig) {
-    this.config = config
+    this.config = config;
   }
-  
+
   /**
    * Collect context from available sources
    * @param includeMessages - Include conversation messages
@@ -24,68 +23,68 @@ export class ContextCollector {
     includeMessages: boolean = true,
     includeTodos: boolean = true,
     includeFiles: boolean = true,
-    description: string = ''
+    description: string = "",
   ): Promise<BranchContext> {
-    const currentBranch = await GitOperations.getCurrentBranch()
-    
+    const currentBranch = await GitOperations.getCurrentBranch();
+
     if (!currentBranch) {
-      throw new Error('Not on a git branch')
+      throw new Error("Not on a git branch");
     }
-    
-    const data: BranchContext['data'] = {
-      description: description || ''
-    }
-    
+
+    const data: BranchContext["data"] = {
+      description: description || "",
+    };
+
     // Collect messages (placeholder - will use OpenCode SDK when available)
     if (includeMessages) {
-      data.messages = await this.collectMessages()
+      data.messages = await this.collectMessages();
     }
-    
+
     // Collect todos (placeholder - will use OpenCode SDK when available)
     if (includeTodos) {
-      data.todos = await this.collectTodos()
+      data.todos = await this.collectTodos();
     }
-    
+
     // Collect modified files from git
     if (includeFiles) {
-      data.files = await GitOperations.getModifiedFiles()
+      data.files = await GitOperations.getModifiedFiles();
     }
-    
+
     // Calculate metadata
     const context: BranchContext = {
       branch: currentBranch,
       savedAt: new Date().toISOString(),
       metadata: {
-        version: '1.0.0',
+        version: "1.0.0",
         platform: process.platform,
         size: JSON.stringify(data).length,
         messageCount: data.messages?.length || 0,
         todoCount: data.todos?.length || 0,
-        fileCount: data.files?.length || 0
+        fileCount: data.files?.length || 0,
       },
-      data
-    }
-    
-    return context
+      data,
+    };
+
+    return context;
   }
-  
+
   /**
    * Collect conversation messages
    * @returns Array of messages
    */
-  private async collectMessages(): Promise<BranchContext['data']['messages']> {
+  private async collectMessages(): Promise<BranchContext["data"]["messages"]> {
     // Placeholder for SDK integration
     // When OpenCode SDK is available, this will fetch recent messages
-    return []
+    return [];
   }
-  
+
   /**
    * Collect todo items
    * @returns Array of todos
    */
-  private async collectTodos(): Promise<BranchContext['data']['todos']> {
+  private async collectTodos(): Promise<BranchContext["data"]["todos"]> {
     // Placeholder for SDK integration
     // When OpenCode SDK is available, this will fetch todo items
-    return []
+    return [];
   }
 }

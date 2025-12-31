@@ -1,13 +1,13 @@
-import type { PluginContext } from '@opencode-ai/plugin'
+import type { ToolContext } from '@opencode-ai/plugin'
 import type { BranchContext } from './types.js'
 
 /**
  * Injects context into OpenCode sessions
  */
 export class ContextInjector {
-  private context: PluginContext
+  private context: ToolContext
   
-  constructor(context: PluginContext) {
+  constructor(context: ToolContext) {
     this.context = context
   }
   
@@ -54,7 +54,7 @@ export class ContextInjector {
    * @returns Formatted summary string
    */
   private formatContextSummary(context: BranchContext): string {
-    const lines: [
+    const lines = [
       `# Branch Context Loaded: ${context.branch}`,
       `Restored from: ${context.savedAt}`,
       ''
