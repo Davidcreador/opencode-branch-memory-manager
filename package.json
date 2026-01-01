@@ -1,33 +1,56 @@
 {
-  "name": "opencode-branch-memory-manager",
+  "name": "@davidcreador/opencode-branch-memory-manager",
   "version": "0.1.0",
-  "description": "Automatically manages branch-specific context for OpenCode",
+  "description": "Automatically manages branch-specific context for OpenCode with auto-save, auto-load, and git workflow integration",
+  "author": "Davidcreador",
+  "license": "MIT",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Davidcreador/opencode-branch-memory-manager.git"
+  },
+  "homepage": "https://github.com/Davidcreador/opencode-branch-memory-manager#readme",
+  "bugs": {
+    "url": "https://github.com/Davidcreador/opencode-branch-memory-manager/issues"
+  },
+  "files": [
+    "dist",
+    ".opencode"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "build": "npm run build:local",
+    "build:npm": "cd src && bun install --no-lockfile && bun build index.ts --outdir ../dist --target node",
+    "build:local": "bun build .opencode/tool/branch-memory.ts --outdir .opencode/dist --target node",
+    "typecheck": "tsc --noEmit --project tsconfig.typecheck.json --skipLibCheck",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
-    "lint": "eslint .opencode tests --ext .ts",
-    "lint:fix": "eslint .opencode tests --ext .ts --fix",
-    "clean": "rm -rf dist node_modules .opencode/node_modules"
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "clean": "rm -rf dist node_modules src/node_modules",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "opencode",
+    "opencode-plugin",
     "branch-memory",
     "context",
     "git",
-    "plugin"
+    "auto-save",
+    "workspace"
   ],
-  "author": "",
-  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^4.0.0",
+    "zod": "^3.22.0"
+  },
   "devDependencies": {
-    "@opencode-ai/plugin": "latest",
-    "@types/bun": "latest",
+    "@opencode-ai/plugin": "^1.0.0",
     "@types/node": "^20.0.0",
-    "bun-types": "latest",
-    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.0.0"
   },
   "engines": {
     "node": ">=18.0.0",

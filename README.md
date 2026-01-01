@@ -18,6 +18,30 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 ### Installation
 
+#### Option 1: npm Package (Recommended)
+
+**macOS/Linux:**
+```bash
+bunx install @davidcreador/opencode-branch-memory-manager
+```
+
+**Windows (PowerShell):**
+```powershell
+bunx install @davidcreador/opencode-branch-memory-manager
+```
+
+The plugin and tools will be automatically loaded when you run `opencode`. Add to your `opencode.json`:
+
+```json
+{
+  "plugin": ["@davidcreador/opencode-branch-memory-manager"]
+}
+```
+
+**Note:** This will add the plugin without removing any existing plugins you have.
+
+#### Option 2: Local Installation
+
 **macOS/Linux:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.sh | bash
@@ -427,6 +451,37 @@ git checkout feature/user-profile
 
 # Context is restored - messages and todos are back
 ```
+
+## 🛠️ Development
+
+### Build
+
+```bash
+bun install
+bun run build
+```
+
+This compiles TypeScript files from `src/` to `dist/`.
+
+### Type Check
+
+```bash
+bun run typecheck
+```
+
+### Testing
+
+```bash
+bun test
+```
+
+## 📦 Publishing to npm
+
+1. Update version in `package.json`
+2. Build: `bun run build`
+3. Publish: `npm publish`
+
+Make sure you're logged in to npm: `npm whoami`
 
 ## 📝 License
 

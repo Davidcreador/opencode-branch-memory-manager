@@ -12,18 +12,20 @@
     "resolveJsonModule": true,
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      ".opencode/branch-memory/*": [".opencode/branch-memory/*"]
+      ".opencode/branch-memory/*": [".opencode/branch-memory/*"],
+      "src/branch-memory/*": ["src/branch-memory/*"]
     }
   },
   "include": [
-    ".opencode/**/*",
-    "tests/**/*"
+    "src/**/*",
+    ".opencode/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "tests"
   ]
 }
