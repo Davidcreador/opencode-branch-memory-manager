@@ -476,8 +476,11 @@ Make sure you're logged in to npm: `npm whoami`
 
 ## 📝 Notes
 
-- Package name: `opencode-branch-memory-manager` (unscoped for testing)
-- After successful publish, you can switch back to scoped name `@davidcreador/opencode-branch-memory-manager`
+- Package name: `opencode-branch-memory-manager` (unscoped)
+- Scoped packages (`@davidcreador/...`) may require OTP for publishing
+- If prompted for OTP, provide the one-time password
+- For testing purposes, unscoped name avoids OTP requirement
+- After successful publish with unscoped name, you can switch to scoped name if needed
 - Update README and package.json accordingly
 
 1. Update version in `package.json`
