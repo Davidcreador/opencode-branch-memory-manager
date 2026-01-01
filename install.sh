@@ -22,12 +22,14 @@ fi
 # Create directory structure
 echo "📁 Creating directory structure..."
 mkdir -p .opencode/tool
+mkdir -p .opencode/plugin
 mkdir -p .opencode/branch-memory
 mkdir -p .opencode/config
 
 # Download plugin files
 echo "📄 Downloading plugin files..."
 curl -fsSL "$BASE_URL/.opencode/package.json" -o .opencode/package.json
+curl -fsSL "$BASE_URL/.opencode/plugin/branch-memory-plugin.ts" -o .opencode/plugin/branch-memory-plugin.ts
 curl -fsSL "$BASE_URL/.opencode/tool/branch-memory.ts" -o .opencode/tool/branch-memory.ts
 curl -fsSL "$BASE_URL/.opencode/branch-memory/index.ts" -o .opencode/branch-memory/index.ts
 curl -fsSL "$BASE_URL/.opencode/branch-memory/types.ts" -o .opencode/branch-memory/types.ts

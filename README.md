@@ -4,13 +4,15 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 ## ✨ Features
 
+- 🔄 **Automatic Context Loading**: Loads saved context when switching branches (configurable)
+- 💾 **Automatic Saving**: Auto-saves context on tool execution, session updates, and branch changes
 - 🎛️ **Manual Control**: Save/load context with fine-grained filters
 - 💾 **Branch-Specific Storage**: Context saved per git branch
 - 📊 **Status Dashboard**: See all your saved contexts at a glance
 - 🛡️ **Error Resilient**: Automatic backups and recovery from corrupted data
 - 🌐 **Cross-Platform**: Works seamlessly on macOS, Linux, and Windows
 - 📋 **List & Delete**: Manage saved contexts easily
-- 🎯 **Configurable**: Customize what to save and storage options
+- 🎯 **Configurable**: Customize auto-save behavior, context loading mode, and storage options
 
 ## 🚀 Quick Start
 
@@ -25,6 +27,8 @@ curl -fsSL https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory
 ```powershell
 irm https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.ps1 | iex
 ```
+
+The plugin and tools will be automatically loaded when you run `opencode`. No configuration needed.
 
 ### Getting Started
 
@@ -232,20 +236,25 @@ Configuration is stored in `.opencode/config/branch-memory.json`
 
 ## 🔧 How It Works
 
-1. **Initialization**: Tools load configuration from `.opencode/config/branch-memory.json`
-2. **Manual Saving**: Use `@branch-memory_save` to save context:
+1. **Initialization**: Plugin loads configuration from `.opencode/config/branch-memory.json`
+2. **Automatic Features** (when plugin is loaded):
+    - Auto-loads context when a new session starts (configurable)
+    - Auto-saves before tool execution
+    - Auto-saves on session updates (throttled)
+    - Monitors for git branch changes and auto-loads/saves
+3. **Manual Saving**: Use `@branch-memory_save` to save context:
     - Saves conversation messages
     - Saves todo items
     - Saves modified file references
-3. **Manual Loading**: Use `@branch-memory_load` to restore context:
+4. **Manual Loading**: Use `@branch-memory_load` to restore context:
     - Loads messages and todos
     - Shows what was saved
-4. **Status Checking**: Use `@branch-memory_status` to see:
+5. **Status Checking**: Use `@branch-memory_status` to see:
     - Current branch and context
     - All saved contexts
     - Metadata (size, dates, counts)
-5. **Error Recovery**: Automatic backups prevent data loss
-6. **Management**: Use `@branch-memory_list` and `@branch-memory_deleteContext` to manage saved contexts
+6. **Error Recovery**: Automatic backups prevent data loss
+7. **Management**: Use `@branch-memory_list` and `@branch-memory_deleteContext` to manage saved contexts
 
 ## 🐛 Troubleshooting
 
@@ -332,6 +341,8 @@ chmod -R u+w .opencode/branch-memory/
 
 ```
 .opencode/
+├── plugin/
+│   └── branch-memory-plugin.ts   # Event hooks for auto-save/load
 ├── tool/
 │   └── branch-memory.ts          # User-facing tools
 ├── branch-memory/
@@ -377,24 +388,41 @@ Edit `.opencode/config/branch-memory.json` to customize behavior:
 ```bash
 git checkout -b feature/user-profile
 opencode
-@branch-memory_status
 ```
 
-2. **Work on feature and save context:**
+2. **Context auto-loads on session start (if contextLoading is "auto"):**
+```
+🚀 Session created - checking for saved context...
+📥 Found context for branch 'feature/user-profile'
+   Use @branch-memory_load to restore it
+```
+
+3. **Work on feature - context auto-saves as you work:**
 ```bash
-# Do some work...
+# Plugin auto-saves before tool execution and periodically
 @branch-memory_save "Adding user profile feature"
 ```
 
-3. **Switch to main to work on bug fix:**
+4. **Switch to main to work on bug fix:**
 ```bash
 git checkout main
-@branch-memory_status
+# Plugin detects branch change
+🔄 Branch changed: feature/user-profile → main
+💾 Saved context for old branch 'feature/user-profile'
+📥 Found context for branch 'main'
 ```
 
-4. **Switch back to feature and load context:**
+5. **Switch back to feature - context auto-loads:**
 ```bash
 git checkout feature/user-profile
+# Plugin detects branch change
+🔄 Branch changed: main → feature/user-profile
+📥 Found context for branch 'feature/user-profile'
+   Use @branch-memory_load to restore it
+```
+
+6. **Or manually load context:**
+```bash
 @branch-memory_load
 
 # Context is restored - messages and todos are back

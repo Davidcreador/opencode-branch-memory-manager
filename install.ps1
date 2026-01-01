@@ -19,6 +19,7 @@ if (Test-Path ".opencode") {
 # Create directory structure
 Write-Host "📁 Creating directory structure..." -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path ".opencode\tool" | Out-Null
+New-Item -ItemType Directory -Force -Path ".opencode\plugin" | Out-Null
 New-Item -ItemType Directory -Force -Path ".opencode\branch-memory" | Out-Null
 New-Item -ItemType Directory -Force -Path ".opencode\config" | Out-Null
 
@@ -26,6 +27,7 @@ New-Item -ItemType Directory -Force -Path ".opencode\config" | Out-Null
 Write-Host "📄 Downloading plugin files..." -ForegroundColor Cyan
 $files = @(
     "$BASE_URL/.opencode/package.json",
+    "$BASE_URL/.opencode/plugin/branch-memory-plugin.ts",
     "$BASE_URL/.opencode/tool/branch-memory.ts",
     "$BASE_URL/.opencode/branch-memory/index.ts",
     "$BASE_URL/.opencode/branch-memory/types.ts",
