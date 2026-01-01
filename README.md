@@ -32,9 +32,9 @@ bunx install @davecodes/opencode-branch-memory-manager
 
 The plugin and tools will be automatically loaded when you run `opencode`. Add to your `opencode.json`:
 
-```json
+  ```json
 {
-  "plugin": ["@davecodes/opencode-branch-memory-manager"]
+  "plugin": ["opencode-branch-memory-manager"]
 }
 ```
 
@@ -454,15 +454,6 @@ git checkout feature/user-profile
 
 ## 🛠️ Development
 
-### Build
-
-```bash
-bun install
-bun run build
-```
-
-This compiles TypeScript files from `src/` to `dist/`.
-
 ### Type Check
 
 ```bash
@@ -476,6 +467,18 @@ bun test
 ```
 
 ## 📦 Publishing to npm
+
+1. Update version in `package.json`
+2. Build: `bun run build`
+3. Publish: `npm publish --access public`
+
+Make sure you're logged in to npm: `npm whoami`
+
+## 📝 Notes
+
+- Package name: `opencode-branch-memory-manager` (unscoped for testing)
+- After successful publish, you can switch back to scoped name `@davidcreador/opencode-branch-memory-manager`
+- Update README and package.json accordingly
 
 1. Update version in `package.json`
 2. Build: `bun run build`
