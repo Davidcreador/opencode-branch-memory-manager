@@ -22,19 +22,19 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 **macOS/Linux:**
 ```bash
-bunx install @davidcreador/opencode-branch-memory-manager
+bunx install @davecodes/opencode-branch-memory-manager
 ```
 
 **Windows (PowerShell):**
 ```powershell
-bunx install @davidcreador/opencode-branch-memory-manager
+bunx install @davecodes/opencode-branch-memory-manager
 ```
 
 The plugin and tools will be automatically loaded when you run `opencode`. Add to your `opencode.json`:
 
 ```json
 {
-  "plugin": ["@davidcreador/opencode-branch-memory-manager"]
+  "plugin": ["@davecodes/opencode-branch-memory-manager"]
 }
 ```
 
