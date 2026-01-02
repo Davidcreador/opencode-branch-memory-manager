@@ -1,6 +1,6 @@
 {
   "name": "opencode-branch-memory-manager",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Automatically manages branch-specific context for OpenCode with auto-save, auto-load, and git workflow integration",
   "author": "Davidcreador",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "url": "https://github.com/Davidcreador/opencode-branch-memory-manager/issues"
   },
   "files": [
-    ".opencode"
+    ".opencode",
+    "dist"
   ],
   "scripts": {
     "build": "npm run build:local",
