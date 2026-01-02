@@ -466,6 +466,33 @@ bun run typecheck
 bun test
 ```
 
+## 🛠️ Local Development
+
+For development, testing, and local usage, you can install directly without npm:
+
+```bash
+# 1. Install dependencies
+bun install
+
+# 2. Build
+bun run build
+
+# 3. The .opencode/ directory is ready to use
+# The build creates .opencode/dist/ with all plugin files
+```
+
+The `.opencode/` directory structure is now ready:
+```
+.opencode/
+├── dist/
+│   └── branch-memory.js       # Bundled plugin + tools
+├── config/
+│   └── branch-memory.json      # Configuration
+└── package.json                  # Dependencies
+```
+
+**Note:** For development, you can work directly in `src/` and run `npm run build:local` to test the `.opencode/` version.
+
 ## 📦 Publishing to npm
 
 1. Update version in `package.json`
