@@ -30,14 +30,17 @@ Add the plugin to your `opencode.json`:
 }
 ```
 
-OpenCode will automatically install the package from npm when you run `opencode`.
+OpenCode will automatically install and load the package from npm when you run `opencode`.
 
-**Manual installation:**
+**Alternative - Manual installation:**
 ```bash
-bunx install opencode-branch-memory-manager
+# Install the package manually
+npm install opencode-branch-memory-manager
+# or
+bun install opencode-branch-memory-manager
 ```
 
-**Note:** This will add the plugin without removing any existing plugins you have.
+Then add it to your `opencode.json` as shown above.
 
 #### Method 2: Direct Git Clone (For Development/Testing)
 

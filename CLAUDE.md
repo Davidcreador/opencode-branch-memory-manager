@@ -146,5 +146,6 @@ The plugin is designed to work with OpenCode's plugin API. Test by:
 
 - Package name: `opencode-branch-memory-manager` (unscoped)
 - Includes both `.opencode/` and `dist/` directories
-- Users install via `bunx install opencode-branch-memory-manager`
-- Automatically loaded when plugin is added to `opencode.json`
+- Users add `"plugin": ["opencode-branch-memory-manager"]` to `opencode.json`
+- OpenCode automatically installs and loads the plugin
+- Manual install: `npm install opencode-branch-memory-manager` or `bun install opencode-branch-memory-manager`
