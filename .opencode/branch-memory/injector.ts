@@ -16,15 +16,43 @@ export class ContextInjector {
    * @param branchContext - Branch context to inject
    */
   async injectContext(branchContext: BranchContext): Promise<void> {
-    const summary = this.formatContextSummary(branchContext)
-    
-    // Inject context without triggering AI response
-    // This would use the OpenCode SDK client.session.prompt() with noReply: true
-    // For now, log the injection
-    console.log('\n📥 Context injected for branch:', branchContext.branch)
-    console.log('─'.repeat(50))
-    console.log(summary)
-    console.log('─'.repeat(50))
+    if (!this.context || !this.hasContextData(branchContext)) {
+      return;
+    }
+
+    const summary = this.formatContextSummary(branchContext);
+
+    try {
+      // Inject context as a system message that doesn't trigger response
+      // Using the OpenCode SDK client to add context to the session
+      const client = (this.context as any).client;
+
+      if (client?.session?.addMessage) {
+        await client.session.addMessage({
+          role: 'system',
+          content: summary,
+          silent: true  // Don't trigger AI response
+        });
+        console.log('✅ Context injected for branch:', branchContext.branch);
+      } else if (client?.session?.prompt) {
+        // Fallback: use prompt with noReply flag
+        await client.session.prompt(summary, { noReply: true });
+        console.log('✅ Context injected for branch:', branchContext.branch);
+      } else {
+        // Fallback to console output if SDK methods not available
+        console.log('\n📥 Context Summary (SDK not available):');
+        console.log('─'.repeat(50));
+        console.log(summary);
+        console.log('─'.repeat(50));
+      }
+    } catch (error) {
+      console.error('Failed to inject context:', error);
+      // Fall back to console output
+      console.log('\n📥 Context Summary (injection failed):');
+      console.log('─'.repeat(50));
+      console.log(summary);
+      console.log('─'.repeat(50));
+    }
   }
   
   /**

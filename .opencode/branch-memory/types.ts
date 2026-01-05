@@ -49,6 +49,8 @@ export interface PluginConfig {
     onMessageChange: boolean
     onBranchChange: boolean
     onToolExecute: boolean
+    throttleMs: number
+    periodicIntervalMs: number
   }
   contextLoading: 'auto' | 'ask' | 'manual'
   context: {

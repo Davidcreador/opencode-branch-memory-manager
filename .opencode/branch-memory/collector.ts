@@ -6,9 +6,11 @@ import { GitOperations } from "./git.js";
  */
 export class ContextCollector {
   private config: PluginConfig;
+  private client?: any;
 
-  constructor(config: PluginConfig) {
+  constructor(config: PluginConfig, client?: any) {
     this.config = config;
+    this.client = client;
   }
 
   /**
@@ -73,9 +75,28 @@ export class ContextCollector {
    * @returns Array of messages
    */
   private async collectMessages(): Promise<BranchContext["data"]["messages"]> {
-    // Placeholder for SDK integration
-    // When OpenCode SDK is available, this will fetch recent messages
-    return [];
+    if (!this.client) {
+      console.warn('Client not available, skipping message collection');
+      return [];
+    }
+
+    try {
+      // Use OpenCode SDK to fetch session messages
+      // Note: The actual API may differ - this is based on common patterns
+      const messages = await this.client.session?.getMessages?.() || [];
+
+      // Limit to maxMessages from config
+      const limited = messages.slice(-this.config.context.maxMessages);
+
+      return limited.map((msg: any) => ({
+        role: msg.role || 'user',
+        content: msg.content || '',
+        timestamp: msg.timestamp || new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error('Failed to collect messages:', error);
+      return [];
+    }
   }
 
   /**
@@ -83,8 +104,27 @@ export class ContextCollector {
    * @returns Array of todos
    */
   private async collectTodos(): Promise<BranchContext["data"]["todos"]> {
-    // Placeholder for SDK integration
-    // When OpenCode SDK is available, this will fetch todo items
-    return [];
+    if (!this.client) {
+      console.warn('Client not available, skipping todo collection');
+      return [];
+    }
+
+    try {
+      // Use OpenCode SDK to fetch session todos
+      // Note: The actual API may differ - this is based on common patterns
+      const todos = await this.client.session?.getTodos?.() || [];
+
+      // Limit to maxTodos from config
+      const limited = todos.slice(0, this.config.context.maxTodos);
+
+      return limited.map((todo: any) => ({
+        id: todo.id || String(Date.now()),
+        content: todo.content || '',
+        status: todo.status || 'pending'
+      }));
+    } catch (error) {
+      console.error('Failed to collect todos:', error);
+      return [];
+    }
   }
 }

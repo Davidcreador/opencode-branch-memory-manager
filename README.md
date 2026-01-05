@@ -18,41 +18,74 @@ Automatically manages branch-specific context for OpenCode so you never lose you
 
 ### Installation
 
-#### Option 1: npm Package (Recommended)
+The plugin supports **three installation methods** to fit different workflows:
 
-**macOS/Linux:**
-```bash
-bunx install @davecodes/opencode-branch-memory-manager
-```
+#### Method 1: NPM Package (Recommended for Individual Users)
 
-**Windows (PowerShell):**
-```powershell
-bunx install @davecodes/opencode-branch-memory-manager
-```
+Add the plugin to your `opencode.json`:
 
-The plugin and tools will be automatically loaded when you run `opencode`. Add to your `opencode.json`:
-
-  ```json
+```json
 {
   "plugin": ["opencode-branch-memory-manager"]
 }
 ```
 
+OpenCode will automatically install the package from npm when you run `opencode`.
+
+**Manual installation:**
+```bash
+bunx install opencode-branch-memory-manager
+```
+
 **Note:** This will add the plugin without removing any existing plugins you have.
 
-#### Option 2: Local Installation
+#### Method 2: Direct Git Clone (For Development/Testing)
 
-**macOS/Linux:**
+Clone the repository directly into your project:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.sh | bash
+# Navigate to your project's .opencode directory
+cd .opencode
+
+# Clone the plugin
+git clone https://github.com/Davidcreador/opencode-branch-memory-manager.git
+
+# Install dependencies and build
+cd opencode-branch-memory-manager
+bun install
+bun run build:local
 ```
 
-**Windows (PowerShell):**
-```powershell
-irm https://raw.githubusercontent.com/Davidcreador/opencode-branch-memory-manager/main/install.ps1 | iex
+The plugin will be automatically loaded when you run `opencode` from your project.
+
+#### Method 3: Marketplace (For Teams/Organizations)
+
+For team or organizational distribution, you can set up a marketplace:
+
+**1. Add the marketplace to your `.opencode/settings.json`:**
+```json
+{
+  "extraKnownMarketplaces": {
+    "your-org": {
+      "source": {
+        "source": "github",
+        "repo": "your-org/opencode-plugins"
+      }
+    }
+  }
+}
 ```
 
-The plugin and tools will be automatically loaded when you run `opencode`. No configuration needed.
+**2. Enable the plugin:**
+```json
+{
+  "enabledPlugins": {
+    "branch-memory-manager@your-org": true
+  }
+}
+```
+
+The plugin will be installed from your organization's marketplace.
 
 ### Getting Started
 

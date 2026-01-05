@@ -1,0 +1,31 @@
+{
+  "name": "branch-memory-tools",
+  "owner": {
+    "name": "Davidcreador",
+    "email": "contact@davidcreador.com"
+  },
+  "metadata": {
+    "description": "OpenCode plugins for branch memory management",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "branch-memory-manager",
+      "source": ".",
+      "description": "Automatically manages branch-specific context with auto-save and auto-load. Never lose your development context when switching git branches.",
+      "version": "0.1.3",
+      "author": {
+        "name": "Davidcreador"
+      },
+      "license": "MIT",
+      "keywords": [
+        "branch",
+        "context",
+        "git",
+        "auto-save",
+        "memory",
+        "workflow"
+      ]
+    }
+  ]
+}

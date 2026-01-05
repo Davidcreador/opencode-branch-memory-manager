@@ -40,6 +40,17 @@
     "auto-save",
     "workspace"
   ],
+  "opencode": {
+    "type": "plugin",
+    "entrypoint": ".opencode/plugin/branch-memory-plugin.ts",
+    "tools": [
+      "@branch-memory_save",
+      "@branch-memory_load",
+      "@branch-memory_status",
+      "@branch-memory_list",
+      "@branch-memory_deleteContext"
+    ]
+  },
   "dependencies": {
     "chokidar": "^4.0.0",
     "zod": "^3.22.0"

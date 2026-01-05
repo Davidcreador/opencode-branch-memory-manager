@@ -1,16 +1,18 @@
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { existsSync } from 'fs'
-import type { BranchContext } from './types.js'
+import type { BranchContext, PluginConfig } from './types.js'
 
 /**
  * Context storage manager for branch-specific contexts
  */
 export class ContextStorage {
   private storageDir: string
-  
-  constructor(storageDir: string) {
+  private maxBackups: number
+
+  constructor(storageDir: string, config?: PluginConfig) {
     this.storageDir = storageDir
+    this.maxBackups = config?.storage?.maxBackups ?? 5
   }
   
   /**
@@ -162,7 +164,7 @@ export class ContextStorage {
           return { name: f, timestamp: match ? parseInt(match[1], 10) : 0 }
         })
         .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(5) // Keep last 5
+        .slice(this.maxBackups) // Keep last maxBackups
       
       for (const backup of backups) {
         await fs.unlink(path.join(this.storageDir, backup.name)).catch(() => {})

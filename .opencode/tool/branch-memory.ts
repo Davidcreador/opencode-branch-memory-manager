@@ -7,6 +7,22 @@ import {
   ContextInjector,
 } from "../branch-memory/index.js";
 import type { ToolContext } from "@opencode-ai/plugin";
+import type { PluginConfig } from "../branch-memory/types.js";
+
+/**
+ * Shared initialization helper for all tools
+ * Reduces code duplication across tool implementations
+ */
+async function initializeContext(): Promise<{
+  configManager: ConfigManager;
+  config: PluginConfig;
+  storage: ContextStorage;
+}> {
+  const configManager = new ConfigManager(process.cwd());
+  const config = await configManager.load();
+  const storage = new ContextStorage(configManager.getStorageDir(), config);
+  return { configManager, config, storage };
+}
 
 /**
  * Save current session context for current git branch with optional filters
@@ -34,8 +50,7 @@ export const save: ToolDefinition = tool({
   },
   async execute(args, context: ToolContext) {
     try {
-      ConfigManager.setProjectPath(process.cwd());
-      const config = await ConfigManager.load();
+      const { config, storage } = await initializeContext();
 
       const currentBranch = await GitOperations.getCurrentBranch();
 
@@ -52,9 +67,6 @@ export const save: ToolDefinition = tool({
         args.description || "",
       );
 
-      const storage = new ContextStorage(
-        ConfigManager.getStorageDir(process.cwd()),
-      );
       await storage.saveContext(currentBranch, branchContext);
 
       return `✅ Saved context for branch '${currentBranch}'
@@ -82,7 +94,7 @@ export const load: ToolDefinition = tool({
   },
   async execute(args, context: ToolContext) {
     try {
-      ConfigManager.setProjectPath(process.cwd());
+      const { storage } = await initializeContext();
 
       const git = GitOperations;
       const targetBranch = args.branch || (await git.getCurrentBranch());
@@ -91,9 +103,6 @@ export const load: ToolDefinition = tool({
         return "⚠️  Not on a git branch";
       }
 
-      const storage = new ContextStorage(
-        ConfigManager.getStorageDir(process.cwd()),
-      );
       const branchContext = await storage.loadContext(targetBranch);
 
       if (!branchContext) {
@@ -123,13 +132,10 @@ export const status: ToolDefinition = tool({
   args: {},
   async execute(args, context: ToolContext) {
     try {
-      ConfigManager.setProjectPath(process.cwd());
+      const { storage } = await initializeContext();
 
       const git = GitOperations;
       const currentBranch = await git.getCurrentBranch();
-      const storage = new ContextStorage(
-        ConfigManager.getStorageDir(process.cwd()),
-      );
       const branches = await storage.listBranches();
 
       let output = "\n📊 Branch Memory Status";
@@ -187,11 +193,8 @@ export const deleteContext: ToolDefinition = tool({
   },
   async execute(args, context: ToolContext) {
     try {
-      ConfigManager.setProjectPath(process.cwd());
+      const { storage } = await initializeContext();
 
-      const storage = new ContextStorage(
-        ConfigManager.getStorageDir(process.cwd()),
-      );
       await storage.deleteContext(args.branch);
 
       return `✅ Deleted context for branch '${args.branch}'`;
@@ -215,11 +218,8 @@ export const list: ToolDefinition = tool({
   },
   async execute(args, context: ToolContext) {
     try {
-      ConfigManager.setProjectPath(process.cwd());
+      const { storage } = await initializeContext();
 
-      const storage = new ContextStorage(
-        ConfigManager.getStorageDir(process.cwd()),
-      );
       const branches = await storage.listBranches();
 
       if (branches.length === 0) {

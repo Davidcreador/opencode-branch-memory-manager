@@ -1,11 +1,11 @@
 import type { Plugin } from '@opencode-ai/plugin'
-import { ContextStorage, GitOperations, ContextCollector, ConfigManager } from '../branch-memory/index.js'
+import { ContextStorage, GitOperations, ContextCollector, ConfigManager, BranchMonitor } from '../branch-memory/index.js'
 
 export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
   console.log('🧠 Branch Memory Plugin initializing...')
 
   // Load configuration
-  ConfigManager.setProjectPath(directory)
+  const configManager = new ConfigManager(directory)
 
   // Check if we're in a git repository
   const isGitRepo = await GitOperations.isGitRepo()
@@ -14,28 +14,28 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
     return {}
   }
 
-  const storage = new ContextStorage(ConfigManager.getStorageDir(directory))
-  const collector = new ContextCollector(await ConfigManager.load())
+  const config = await configManager.load()
+  const storage = new ContextStorage(configManager.getStorageDir(), config)
+  const collector = new ContextCollector(config, client)
 
   // Track last auto-save time to avoid too frequent saves
   let lastAutoSave = 0
-  const AUTO_SAVE_THROTTLE = 5000 // 5 seconds
 
   // Auto-save function with throttling
   const autoSave = async (reason: string) => {
-    const config = await ConfigManager.load()
-    if (config.autoSave.enabled) {
+    const currentConfig = await configManager.load()
+    if (currentConfig.autoSave.enabled) {
       const now = Date.now()
 
-      if (now - lastAutoSave > AUTO_SAVE_THROTTLE) {
+      if (now - lastAutoSave > currentConfig.autoSave.throttleMs) {
         try {
           const currentBranch = await GitOperations.getCurrentBranch()
 
           if (currentBranch) {
             const context = await collector.collectContext(
-              config.context.defaultInclude.includes('messages'),
-              config.context.defaultInclude.includes('todos'),
-              config.context.defaultInclude.includes('files'),
+              currentConfig.context.defaultInclude.includes('messages'),
+              currentConfig.context.defaultInclude.includes('todos'),
+              currentConfig.context.defaultInclude.includes('files'),
               reason
             )
 
@@ -50,62 +50,53 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
     }
   }
 
-  // Track current branch for monitoring
-  let currentBranch: string | null = null
+  // Initialize branch monitor with callback
+  const branchMonitor = new BranchMonitor(
+    async (oldBranch, newBranch) => {
+      console.log(`🔄 Branch changed: ${oldBranch || '(none)'} → ${newBranch}`)
 
-  // Monitor git branch changes
-  const monitorBranch = async () => {
-    try {
-      const newBranch = await GitOperations.getCurrentBranch()
+      const currentConfig = await configManager.load()
 
-      if (newBranch && newBranch !== currentBranch) {
-        const oldBranchName = currentBranch
-        currentBranch = newBranch
-        const config = await ConfigManager.load()
-
-        console.log(`🔄 Branch changed: ${oldBranchName || '(none)'} → ${newBranch}`)
-
-        // Auto-save old branch context
-        if (oldBranchName && config.autoSave.onBranchChange) {
-          await storage.saveContext(oldBranchName, await collector.collectContext(
-            config.context.defaultInclude.includes('messages'),
-            config.context.defaultInclude.includes('todos'),
-            config.context.defaultInclude.includes('files'),
-            'branch change'
-          ))
-          console.log(`💾 Saved context for old branch '${oldBranchName}'`)
-        }
-
-        // Auto-load new branch context
-        if (config.contextLoading === 'auto') {
-          const branchContext = await storage.loadContext(newBranch)
-          if (branchContext) {
-            console.log(`📥 Found context for branch '${newBranch}'`)
-            console.log('   Use @branch-memory_load to restore it')
-          } else {
-            console.log(`ℹ️  No saved context for branch '${newBranch}'`)
-          }
-        } else if (config.contextLoading === 'ask') {
-          console.log(`ℹ️  Context available for branch '${newBranch}'`)
-          console.log(`   Use @branch-memory_load to restore it`)
-        }
+      // Auto-save old branch context
+      if (oldBranch && currentConfig.autoSave.onBranchChange) {
+        const context = await collector.collectContext(
+          currentConfig.context.defaultInclude.includes('messages'),
+          currentConfig.context.defaultInclude.includes('todos'),
+          currentConfig.context.defaultInclude.includes('files'),
+          'branch change'
+        )
+        await storage.saveContext(oldBranch, context)
+        console.log(`💾 Saved context for old branch '${oldBranch}'`)
       }
-    } catch (error) {
-      console.error('Error monitoring branch:', error)
-    }
-  }
 
-  // Start branch monitoring interval
-  const branchMonitorInterval = setInterval(monitorBranch, 2000)
+      // Auto-load new branch context
+      if (currentConfig.contextLoading === 'auto') {
+        const branchContext = await storage.loadContext(newBranch)
+        if (branchContext) {
+          console.log(`📥 Found context for branch '${newBranch}'`)
+          console.log('   Use @branch-memory_load to restore it')
+        } else {
+          console.log(`ℹ️  No saved context for branch '${newBranch}'`)
+        }
+      } else if (currentConfig.contextLoading === 'ask') {
+        console.log(`ℹ️  Context available for branch '${newBranch}'`)
+        console.log(`   Use @branch-memory_load to restore it`)
+      }
+    },
+    config
+  )
+
+  // Start branch monitoring
+  await branchMonitor.start()
 
   return {
     // Hook: Auto-load context when session is created
     'session.created': async (input: any, output: any) => {
       console.log('🚀 Session created - checking for saved context...')
-      const config = await ConfigManager.load()
+      const currentConfig = await configManager.load()
       const branch = await GitOperations.getCurrentBranch()
 
-      if (branch && config.contextLoading === 'auto') {
+      if (branch && currentConfig.contextLoading === 'auto') {
         const branchContext = await storage.loadContext(branch)
         if (branchContext) {
           console.log(`📥 Found context for branch '${branch}'`)
@@ -121,11 +112,11 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
 
     // Hook: Auto-save when session is updated (periodic checkpoints)
     'session.updated': async (input: any, output: any) => {
-      const config = await ConfigManager.load()
-      if (config.autoSave.enabled) {
+      const currentConfig = await configManager.load()
+      if (currentConfig.autoSave.enabled) {
         const now = Date.now()
-        // Only auto-save periodically (every 60 seconds)
-        if (now - lastAutoSave > 60000) {
+        // Only auto-save periodically
+        if (now - lastAutoSave > currentConfig.autoSave.periodicIntervalMs) {
           await autoSave('session update')
         }
       }
@@ -135,8 +126,8 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
     unload: () => {
       console.log('🧠 Branch Memory Plugin shutting down...')
 
-      // Clear the branch monitor interval
-      clearInterval(branchMonitorInterval)
+      // Stop branch monitoring
+      branchMonitor.stop()
 
       // Save one last time before shutdown
       autoSave('plugin unload').catch((error) => {

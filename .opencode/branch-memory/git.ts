@@ -95,7 +95,7 @@ export class GitOperations {
   }
 
   static async getAllBranches(): Promise<string[]> {
-    const result = await this.runGitCommand('branch', "--format='%(refname:short)'")
+    const result = await this.runGitCommand('branch', '--format=%(refname:short)')
     
     if (result.exitCode !== 0) {
       return []
