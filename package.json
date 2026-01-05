@@ -1,6 +1,6 @@
 {
   "name": "opencode-branch-memory-manager",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Automatically manages branch-specific context for OpenCode with auto-save, auto-load, and git workflow integration",
   "author": "Davidcreador",
   "license": "MIT",

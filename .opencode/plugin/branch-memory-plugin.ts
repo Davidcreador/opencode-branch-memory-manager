@@ -138,3 +138,6 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
     },
   }
 }
+
+// Export as default for OpenCode plugin loader
+export default BranchMemoryPlugin
