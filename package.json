@@ -1,6 +1,6 @@
 {
   "name": "opencode-branch-memory-manager",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Automatically manages branch-specific context for OpenCode with auto-save, auto-load, and git workflow integration",
   "author": "Davidcreador",
   "license": "MIT",
@@ -43,15 +43,7 @@
     "workspace"
   ],
   "opencode": {
-    "type": "plugin",
-    "entrypoint": ".opencode/dist/branch-memory-plugin.js",
-    "tools": [
-      "@branch-memory_save",
-      "@branch-memory_load",
-      "@branch-memory_status",
-      "@branch-memory_list",
-      "@branch-memory_deleteContext"
-    ]
+    "type": "plugin"
   },
   "dependencies": {
     "chokidar": "^4.0.0",
