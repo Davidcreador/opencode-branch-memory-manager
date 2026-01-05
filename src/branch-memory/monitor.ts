@@ -22,7 +22,10 @@ export class BranchMonitor {
       newBranch: string,
     ) => void,
     private config: PluginConfig,
-  ) {}
+  ) {
+    // Register the constructor callback
+    this.changeCallbacks.push(this.onBranchChange);
+  }
 
   /**
    * Start monitoring git branch changes
@@ -35,7 +38,7 @@ export class BranchMonitor {
     const gitDir = await GitOperations.getGitDir();
 
     if (!gitDir) {
-      console.warn("Not in a git repository, branch monitoring disabled");
+      // Silent - not in a git repository
       return;
     }
 
@@ -44,7 +47,7 @@ export class BranchMonitor {
     this.currentBranch = branch || undefined;
 
     if (!this.currentBranch) {
-      console.warn("Not on a git branch, branch monitoring disabled");
+      // Silent - not on a git branch
       return;
     }
 
@@ -65,11 +68,7 @@ export class BranchMonitor {
     }
 
     this.isMonitoring = true;
-    console.log(`✓ Branch monitoring started for: ${this.currentBranch}`);
-    console.log(`  Method: ${this.config.monitoring.method}`);
-    console.log(
-      `  Polling interval: ${this.config.monitoring.pollingInterval}ms`,
-    );
+    // Silent startup - monitoring active
   }
 
   /**
@@ -93,19 +92,16 @@ export class BranchMonitor {
       });
 
       this.watcher.on("error", (error: unknown) => {
-        console.error("Watcher error:", error);
-
-        // Fall back to polling if watcher fails
+        // Silent error handling - fall back to polling if watcher fails
         if (this.config.monitoring.method === "watcher") {
-          console.info("Watcher failed, falling back to polling");
           this.stopWatcher();
           this.startPolling();
         }
       });
 
-      console.log(`✓ File watcher started: ${headFile}`);
+      // Silent - watcher started successfully
     } catch (error) {
-      console.error("Failed to start watcher:", error);
+      // Silent - watcher failed to start
     }
   }
 
@@ -119,7 +115,7 @@ export class BranchMonitor {
       await this.checkBranchChange();
     }, interval);
 
-    console.log(`✓ Polling started (interval: ${interval}ms)`);
+    // Silent - polling started
   }
 
   /**
@@ -129,7 +125,7 @@ export class BranchMonitor {
     this.stopWatcher();
     this.stopPolling();
     this.isMonitoring = false;
-    console.log("✓ Branch monitoring stopped");
+    // Silent - monitoring stopped
   }
 
   /**
@@ -163,21 +159,18 @@ export class BranchMonitor {
         const oldBranch = this.currentBranch;
         this.currentBranch = newBranch;
 
-        console.log(
-          `🔄 Branch changed: ${oldBranch || "(none)"} → ${newBranch}`,
-        );
-
+        // Silent - branch change detected, notify callbacks
         // Call all registered callbacks
         for (const callback of this.changeCallbacks) {
           try {
             await callback(oldBranch, newBranch);
           } catch (error) {
-            console.error("Error in branch change callback:", error);
+            // Silent - callback error (plugin handles notifications)
           }
         }
       }
     } catch (error) {
-      console.error("Error checking branch:", error);
+      // Silent - error checking branch
     }
   }
 

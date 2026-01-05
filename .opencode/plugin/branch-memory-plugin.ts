@@ -1,8 +1,8 @@
 import type { Plugin } from '@opencode-ai/plugin'
-import { ContextStorage, GitOperations, ContextCollector, ConfigManager, BranchMonitor } from '../branch-memory/index.js'
+import { ContextStorage, GitOperations, ContextCollector, ConfigManager, BranchMonitor, showToast } from '../branch-memory/index.js'
 
 export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
-  console.log('🧠 Branch Memory Plugin initializing...')
+  // Silent initialization - no need to notify user
 
   // Load configuration
   const configManager = new ConfigManager(directory)
@@ -10,7 +10,11 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
   // Check if we're in a git repository
   const isGitRepo = await GitOperations.isGitRepo()
   if (!isGitRepo) {
-    console.log('⚠️  Not in a git repository, branch memory disabled')
+    showToast(
+      client,
+      'Not in a git repository. Branch memory features disabled.',
+      'warning'
+    )
     return {}
   }
 
@@ -18,8 +22,9 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
   const storage = new ContextStorage(configManager.getStorageDir(), config)
   const collector = new ContextCollector(config, client)
 
-  // Track last auto-save time to avoid too frequent saves
+  // Track last auto-save time and count
   let lastAutoSave = 0
+  let saveCount = 0
 
   // Auto-save function with throttling
   const autoSave = async (reason: string) => {
@@ -41,10 +46,16 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
 
             await storage.saveContext(currentBranch, context)
             lastAutoSave = now
-            console.log(`💾 Auto-saved context for branch '${currentBranch}' (${reason})`)
+            saveCount++
+
+            // Only show toast on first save or every 10th save to reduce noise
+            if (saveCount === 1 || saveCount % 10 === 0) {
+              showToast(client, `Context saved for ${currentBranch}`, 'success', undefined, 2000)
+            }
           }
         } catch (error) {
-          console.error('Auto-save failed:', error)
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          showToast(client, `Failed to save context: ${errorMessage}`, 'error')
         }
       }
     }
@@ -53,8 +64,6 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
   // Initialize branch monitor with callback
   const branchMonitor = new BranchMonitor(
     async (oldBranch, newBranch) => {
-      console.log(`🔄 Branch changed: ${oldBranch || '(none)'} → ${newBranch}`)
-
       const currentConfig = await configManager.load()
 
       // Auto-save old branch context
@@ -66,21 +75,26 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
           'branch change'
         )
         await storage.saveContext(oldBranch, context)
-        console.log(`💾 Saved context for old branch '${oldBranch}'`)
       }
 
-      // Auto-load new branch context
-      if (currentConfig.contextLoading === 'auto') {
-        const branchContext = await storage.loadContext(newBranch)
-        if (branchContext) {
-          console.log(`📥 Found context for branch '${newBranch}'`)
-          console.log('   Use @branch-memory_load to restore it')
-        } else {
-          console.log(`ℹ️  No saved context for branch '${newBranch}'`)
-        }
-      } else if (currentConfig.contextLoading === 'ask') {
-        console.log(`ℹ️  Context available for branch '${newBranch}'`)
-        console.log(`   Use @branch-memory_load to restore it`)
+      // Check for context and show consolidated message
+      const branchContext = await storage.loadContext(newBranch)
+      if (branchContext) {
+        showToast(
+          client,
+          `Switched to ${newBranch}. Context available - use @branch-memory_load to restore.`,
+          'info',
+          'Branch Changed',
+          5000
+        )
+      } else {
+        showToast(
+          client,
+          `Switched to ${newBranch}. No saved context for this branch.`,
+          'info',
+          'Branch Changed',
+          3000
+        )
       }
     },
     config
@@ -92,15 +106,20 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
   return {
     // Hook: Auto-load context when session is created
     'session.created': async (input: any, output: any) => {
-      console.log('🚀 Session created - checking for saved context...')
+      // Only show toast if context exists for current branch
       const currentConfig = await configManager.load()
       const branch = await GitOperations.getCurrentBranch()
 
       if (branch && currentConfig.contextLoading === 'auto') {
         const branchContext = await storage.loadContext(branch)
         if (branchContext) {
-          console.log(`📥 Found context for branch '${branch}'`)
-          console.log('   Use @branch-memory_load to restore it')
+          showToast(
+            client,
+            `Context available for ${branch}. Use @branch-memory_load to restore.`,
+            'info',
+            undefined,
+            4000
+          )
         }
       }
     },
@@ -124,17 +143,17 @@ export const BranchMemoryPlugin: Plugin = async ({ project, client, $, directory
 
     // Hook: Cleanup on plugin unload
     unload: () => {
-      console.log('🧠 Branch Memory Plugin shutting down...')
+      // Silent cleanup - no need to notify user
 
       // Stop branch monitoring
       branchMonitor.stop()
 
       // Save one last time before shutdown
       autoSave('plugin unload').catch((error) => {
-        console.error('Final save failed:', error)
+        // Only show error if final save fails
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        showToast(client, `Final save failed: ${errorMessage}`, 'error')
       })
-
-      console.log('✅ Plugin stopped')
     },
   }
 }

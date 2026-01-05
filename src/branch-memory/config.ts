@@ -59,7 +59,7 @@ export class ConfigManager {
         // Deep merge user config with defaults
         return this.deepMerge(DEFAULT_CONFIG, userConfig) as PluginConfig
       } catch (error) {
-        console.warn('Failed to load config, using defaults:', error instanceof Error ? error.message : error)
+        // Silent - config load failed, using defaults
         return { ...DEFAULT_CONFIG }
       }
     }

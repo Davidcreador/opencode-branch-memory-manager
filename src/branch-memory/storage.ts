@@ -105,22 +105,22 @@ export class ContextStorage {
       const content = await fs.readFile(filePath, 'utf8')
       const data = JSON.parse(content) as BranchContext
       
-      // Validate version compatibility
+      // Validate version compatibility (silent)
       if (data.metadata?.version !== '1.0.0') {
-        console.warn(`Context version mismatch for branch '${branch}': ${data.metadata?.version}`)
+        // Version mismatch - continue with best effort
       }
-      
+
       return data
     } catch (error) {
-      console.error(`Failed to load context for branch '${branch}':`, error)
-      
+      // Failed to load context - try backup
+
       // Try to restore from backup
       const backup = await this.restoreFromBackup(branch)
       if (backup) {
-        console.info(`Restored from backup for branch '${branch}'`)
+        // Silent - restored from backup
         return backup
       }
-      
+
       return null
     }
   }
@@ -143,7 +143,7 @@ export class ContextStorage {
       // Clean old backups (keep last 5)
       await this.cleanOldBackups(branch)
     } catch (error) {
-      console.warn('Failed to create backup:', error)
+      // Silent - backup creation failed (not critical)
     }
   }
   
@@ -168,7 +168,7 @@ export class ContextStorage {
         await fs.unlink(path.join(this.storageDir, backup.name)).catch(() => {})
       }
     } catch (error) {
-      console.warn('Failed to clean old backups:', error)
+      // Silent - cleanup failed (not critical)
     }
   }
   
@@ -202,7 +202,7 @@ export class ContextStorage {
         }
       }
     } catch (error) {
-      console.error('Failed to restore from backup:', error)
+      // Silent - backup restoration failed
     }
     return null
   }
@@ -233,7 +233,7 @@ export class ContextStorage {
       
       return branches
     } catch (error) {
-      console.error('Failed to list branches:', error)
+      // Silent - failed to list branches
       return []
     }
   }
@@ -283,7 +283,7 @@ export class ContextStorage {
         fileCount: data.metadata?.fileCount || 0
       }
     } catch (error) {
-      console.error('Failed to get metadata:', error)
+      // Silent - failed to get metadata
       return {
         size: 'Error',
         modified: 'Error',
@@ -316,7 +316,7 @@ export class ContextStorage {
         await fs.unlink(path.join(this.storageDir, backup)).catch(() => {})
       }
     } catch (error) {
-      console.error('Failed to delete backups:', error)
+      // Silent - failed to delete backups (not critical)
     }
   }
 }

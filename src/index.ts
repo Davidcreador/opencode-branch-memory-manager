@@ -1,18 +1,21 @@
 import { tool, type Plugin } from "@opencode-ai/plugin"
-import { ContextStorage, GitOperations, ContextCollector, ConfigManager } from "./branch-memory/index.js"
+import { ContextStorage, GitOperations, ContextCollector, ConfigManager, showToast } from "./branch-memory/index.js"
 import type { PluginInput, ToolContext } from "@opencode-ai/plugin"
 
 // Import tools from the tool file
 import { save as saveTool, load as loadTool, status as statusTool, list as listTool, deleteContext as deleteContextTool } from "./tool/branch-memory.js"
 
 export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
-  console.log('🧠 Branch Memory Plugin initializing...')
-
+  // Silent initialization - no need to notify user
   ConfigManager.setProjectPath(ctx.directory)
 
   const isGitRepo = await GitOperations.isGitRepo()
   if (!isGitRepo) {
-    console.log('⚠️  Not in a git repository, branch memory disabled')
+    showToast(
+      ctx.client,
+      'Not in a git repository. Branch memory features disabled.',
+      'warning'
+    )
     return {}
   }
 
@@ -20,6 +23,7 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
   const collector = new ContextCollector(await ConfigManager.load())
 
   let lastAutoSave = 0
+  let saveCount = 0
   const AUTO_SAVE_THROTTLE = 5000
 
   const autoSave = async (reason: string) => {
@@ -41,10 +45,16 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
 
             await storage.saveContext(currentBranch, context)
             lastAutoSave = now
-            console.log(`💾 Auto-saved context for branch '${currentBranch}' (${reason})`)
+            saveCount++
+
+            // Only show toast on first save or every 10th save to reduce noise
+            if (saveCount === 1 || saveCount % 10 === 0) {
+              showToast(ctx.client, `Context saved for ${currentBranch}`, 'success', undefined, 2000)
+            }
           }
         } catch (error) {
-          console.error('Auto-save failed:', error)
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          showToast(ctx.client, `Failed to save context: ${errorMessage}`, 'error')
         }
       }
     }
@@ -61,8 +71,7 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
         currentBranch = newBranch
         const config = await ConfigManager.load()
 
-        console.log(`🔄 Branch changed: ${oldBranchName || '(none)'} → ${newBranch}`)
-
+        // Save old branch context if enabled
         if (oldBranchName && config.autoSave.onBranchChange) {
           await storage.saveContext(oldBranchName, await collector.collectContext(
             config.context.defaultInclude.includes('messages'),
@@ -70,24 +79,31 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
             config.context.defaultInclude.includes('files'),
             'branch change'
           ))
-          console.log(`💾 Saved context for old branch '${oldBranchName}'`)
         }
 
-        if (config.contextLoading === 'auto') {
-          const branchContext = await storage.loadContext(newBranch)
-          if (branchContext) {
-            console.log(`📥 Found context for branch '${newBranch}'`)
-            console.log(`   Use @branch-memory_save to restore it`)
-          } else {
-            console.log(`ℹ️  No saved context for branch '${newBranch}'`)
-          }
-        } else if (config.contextLoading === 'ask') {
-          console.log(`ℹ️  Context available for branch '${newBranch}'`)
-          console.log(`   Use @branch-memory_save to restore it`)
+        // Check for context and show consolidated message
+        const branchContext = await storage.loadContext(newBranch)
+        if (branchContext) {
+          showToast(
+            ctx.client,
+            `Switched to ${newBranch}. Context available - use @branch-memory_load to restore.`,
+            'info',
+            'Branch Changed',
+            5000
+          )
+        } else {
+          showToast(
+            ctx.client,
+            `Switched to ${newBranch}. No saved context for this branch.`,
+            'info',
+            'Branch Changed',
+            3000
+          )
         }
       }
     } catch (error) {
-      console.error('Error monitoring branch:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      showToast(ctx.client, `Error monitoring branch: ${errorMessage}`, 'error')
     }
   }
 
@@ -103,15 +119,20 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
       deleteContext: deleteContextTool,
     },
     'session.created': async (input: any, output: any) => {
-      console.log('🚀 Session created - checking for saved context...')
+      // Only show toast if context exists for current branch
       const config = await ConfigManager.load()
       const branch = await GitOperations.getCurrentBranch()
 
       if (branch && config.contextLoading === 'auto') {
         const branchContext = await storage.loadContext(branch)
         if (branchContext) {
-          console.log(`📥 Found context for branch '${branch}'`)
-          console.log(`   Use @branch-memory_save to restore it`)
+          showToast(
+            ctx.client,
+            `Context available for ${branch}. Use @branch-memory_load to restore.`,
+            'info',
+            undefined,
+            4000
+          )
         }
       }
     },
@@ -128,12 +149,13 @@ export const BranchMemoryPlugin: Plugin = async (ctx: PluginInput) => {
       }
     },
     unload: () => {
-      console.log('🧠 Branch Memory Plugin shutting down...')
+      // Silent cleanup - no need to notify user
       clearInterval(branchMonitorInterval)
       autoSave('plugin unload').catch((error) => {
-        console.error('Final save failed:', error)
+        // Only show error if final save fails
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        showToast(ctx.client, `Final save failed: ${errorMessage}`, 'error')
       })
-      console.log('✅ Plugin stopped')
     },
   }
 }

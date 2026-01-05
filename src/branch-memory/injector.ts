@@ -17,14 +17,10 @@ export class ContextInjector {
    */
   async injectContext(branchContext: BranchContext): Promise<void> {
     const summary = this.formatContextSummary(branchContext)
-    
+
     // Inject context without triggering AI response
     // This would use the OpenCode SDK client.session.prompt() with noReply: true
-    // For now, log the injection
-    console.log('\n📥 Context injected for branch:', branchContext.branch)
-    console.log('─'.repeat(50))
-    console.log(summary)
-    console.log('─'.repeat(50))
+    // Silent - context injection (notification handled by caller)
   }
   
   /**
@@ -36,14 +32,9 @@ export class ContextInjector {
     branchContext: BranchContext
   ): Promise<boolean> {
     const summary = this.formatContextSummary(branchContext)
-    
-    console.log('\n📥 Context available for branch:', branchContext.branch)
-    console.log('─'.repeat(50))
-    console.log(summary)
-    console.log('─'.repeat(50))
-    console.log('Load this context? (y/n)')
-    
-    // For now, auto-return true (would use TUI API in production)
+
+    // Silent - interactive prompt (would use TUI API in production)
+    // For now, auto-return true
     // In real implementation, this would use OpenCode TUI to prompt user
     return true
   }

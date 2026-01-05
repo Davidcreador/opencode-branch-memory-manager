@@ -5,6 +5,7 @@ import {
   ContextCollector,
   ConfigManager,
   ContextInjector,
+  showToast,
 } from "../branch-memory/index.js";
 import type { ToolContext } from "@opencode-ai/plugin";
 
@@ -40,6 +41,7 @@ export const save: ToolDefinition = tool({
       const currentBranch = await GitOperations.getCurrentBranch();
 
       if (!currentBranch) {
+        showToast((context as any).client, "Not on a git branch, context not saved", "warning");
         return "⚠️  Not on a git branch, context not saved";
       }
 
@@ -57,14 +59,21 @@ export const save: ToolDefinition = tool({
       );
       await storage.saveContext(currentBranch, branchContext);
 
+      showToast(
+        (context as any).client,
+        `Saved ${branchContext.metadata.messageCount} messages, ${branchContext.metadata.todoCount} todos, ${branchContext.metadata.fileCount} files`,
+        "success"
+      );
+
       return `✅ Saved context for branch '${currentBranch}'
   ├─ Messages: ${branchContext.metadata.messageCount}
   ├─ Todos: ${branchContext.metadata.todoCount}
   ├─ Files: ${branchContext.metadata.fileCount}
   └─ Size: ${(branchContext.metadata.size / 1024).toFixed(1)}KB`;
     } catch (error) {
-      console.error("Error saving context:", error);
-      return `❌ Failed to save context: ${error instanceof Error ? error.message : "Unknown error"}`;
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showToast((context as any).client, `Failed to save context: ${errorMessage}`, "error");
+      return `❌ Failed to save context: ${errorMessage}`;
     }
   },
 });
@@ -88,6 +97,7 @@ export const load: ToolDefinition = tool({
       const targetBranch = args.branch || (await git.getCurrentBranch());
 
       if (!targetBranch) {
+        showToast((context as any).client, "Not on a git branch", "warning");
         return "⚠️  Not on a git branch";
       }
 
@@ -97,11 +107,18 @@ export const load: ToolDefinition = tool({
       const branchContext = await storage.loadContext(targetBranch);
 
       if (!branchContext) {
+        showToast((context as any).client, `No saved context found for branch '${targetBranch}'`, "warning");
         return `⚠️  No context found for branch '${targetBranch}'`;
       }
 
       const injector = new ContextInjector(context);
       await injector.injectContext(branchContext);
+
+      showToast(
+        (context as any).client,
+        `Loaded context from ${branchContext.savedAt.substring(0, 10)}`,
+        "success"
+      );
 
       return `✅ Loaded context for branch '${targetBranch}'
   ├─ Saved: ${branchContext.savedAt.substring(0, 10)}...
@@ -109,8 +126,9 @@ export const load: ToolDefinition = tool({
   ├─ Todos: ${branchContext.metadata.todoCount}
   └─ Files: ${branchContext.metadata.fileCount}`;
     } catch (error) {
-      console.error("Error loading context:", error);
-      return `❌ Failed to load context: ${error instanceof Error ? error.message : "Unknown error"}`;
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showToast((context as any).client, `Failed to load context: ${errorMessage}`, "error");
+      return `❌ Failed to load context: ${errorMessage}`;
     }
   },
 });
@@ -171,8 +189,9 @@ export const status: ToolDefinition = tool({
 
       return output;
     } catch (error) {
-      console.error("Error getting status:", error);
-      return `❌ Failed to get status: ${error instanceof Error ? error.message : "Unknown error"}`;
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showToast((context as any).client, `Failed to get status: ${errorMessage}`, "error");
+      return `❌ Failed to get status: ${errorMessage}`;
     }
   },
 });
@@ -194,10 +213,13 @@ export const deleteContext: ToolDefinition = tool({
       );
       await storage.deleteContext(args.branch);
 
+      showToast((context as any).client, `Deleted context for branch '${args.branch}'`, "success");
+
       return `✅ Deleted context for branch '${args.branch}'`;
     } catch (error) {
-      console.error("Error deleting context:", error);
-      return `❌ Failed to delete context: ${error instanceof Error ? error.message : "Unknown error"}`;
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showToast((context as any).client, `Failed to delete context: ${errorMessage}`, "error");
+      return `❌ Failed to delete context: ${errorMessage}`;
     }
   },
 });
@@ -247,8 +269,9 @@ export const list: ToolDefinition = tool({
 
       return output;
     } catch (error) {
-      console.error("Error listing contexts:", error);
-      return `❌ Failed to list contexts: ${error instanceof Error ? error.message : "Unknown error"}`;
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showToast((context as any).client, `Failed to list contexts: ${errorMessage}`, "error");
+      return `❌ Failed to list contexts: ${errorMessage}`;
     }
   },
 });
