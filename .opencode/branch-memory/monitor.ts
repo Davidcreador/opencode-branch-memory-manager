@@ -22,7 +22,10 @@ export class BranchMonitor {
       newBranch: string,
     ) => void,
     private config: PluginConfig,
-  ) {}
+  ) {
+    // Register the callback so it gets called on branch changes
+    this.changeCallbacks.push(this.onBranchChange);
+  }
 
   /**
    * Start monitoring git branch changes

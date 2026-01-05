@@ -1,6 +1,6 @@
 {
   "name": "opencode-branch-memory-manager",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Automatically manages branch-specific context for OpenCode with auto-save, auto-load, and git workflow integration",
   "author": "Davidcreador",
   "license": "MIT",
@@ -22,13 +22,15 @@
   "scripts": {
     "build": "npm run build:local",
     "build:npm": "cd src && bun install --no-lockfile && bun build index.ts --outdir ../dist --target node",
-    "build:local": "bun build .opencode/tool/branch-memory.ts --outdir .opencode/dist --target node",
+    "build:plugin": "bun build .opencode/plugin/branch-memory-plugin.ts --outdir .opencode/dist --target node --format esm",
+    "build:tools": "bun build .opencode/tool/branch-memory.ts --outdir .opencode/dist --target node --format esm",
+    "build:local": "npm run build:plugin && npm run build:tools",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json --skipLibCheck",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
-    "clean": "rm -rf dist node_modules src/node_modules",
+    "clean": "rm -rf dist node_modules src/node_modules .opencode/dist",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
@@ -42,7 +44,7 @@
   ],
   "opencode": {
     "type": "plugin",
-    "entrypoint": ".opencode/plugin/branch-memory-plugin.ts",
+    "entrypoint": ".opencode/dist/branch-memory-plugin.js",
     "tools": [
       "@branch-memory_save",
       "@branch-memory_load",
