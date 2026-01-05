@@ -20,7 +20,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:local",
+    "build": "npm run build:local && npm run build:npm",
     "build:npm": "cd src && bun install --no-lockfile && bun build index.ts --outdir ../dist --target node",
     "build:plugin": "bun build .opencode/plugin/branch-memory-plugin.ts --outdir .opencode/dist --target node --format esm",
     "build:tools": "bun build .opencode/tool/branch-memory.ts --outdir .opencode/dist --target node --format esm",
